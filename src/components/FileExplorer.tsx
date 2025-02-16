@@ -5,6 +5,7 @@ import {
   addFolder,
   deleteFolder,
   moveFolder,
+  renameFolder,
 } from "@/lib/features/folders/foldersSlice";
 import { RootState } from "@/lib/store";
 import { Folder as FolderIcon } from "lucide-react";
@@ -51,7 +52,7 @@ const SidebarItem = styled.div`
 const Canvas = styled.div`
   position: relative;
   flex-grow: 1;
-  padding: 20px;
+  margin: 20px;
   background-color: #1e1e1e;
 `;
 
@@ -63,7 +64,7 @@ const FolderContainer = styled.div<{ x: number; y: number }>`
   flex-direction: column;
   align-items: center;
   gap: 5px;
-  cursor: move;
+  cursor: pointer;
 `;
 
 const StyledFolder = styled.div`
@@ -118,35 +119,154 @@ const MenuItem = styled.div`
   }
 `;
 
+const Input = styled.input`
+  background-color: #2d2d2d;
+  border: 1px solid #3c3c3c;
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  width: 120px;
+
+  &:focus {
+    outline: none;
+    border-color: #094771;
+  }
+`;
+
+const Modal = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #2d2d2d;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1100;
+`;
+
+const ModalTitle = styled.h3`
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  font-size: 14px;
+`;
+
+const ModalButtons = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+`;
+
+const Button = styled.button<{ primary?: boolean }>`
+  background-color: ${(props) => (props.primary ? "#094771" : "#3c3c3c")};
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+
+  &:hover {
+    background-color: ${(props) => (props.primary ? "#0b5894" : "#4c4c4c")};
+  }
+`;
+
 const FileExplorer: React.FC = () => {
   const dispatch = useDispatch();
   const folders = useSelector((state: RootState) => state.folders.folders);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
+    folderId?: string | undefined;
   } | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState(false);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  const handleRightClick = (event: React.MouseEvent) => {
+  const handleRightClick = (event: React.MouseEvent, folderId?: string) => {
     event.preventDefault();
-    setContextMenu({ x: event.clientX, y: event.clientY });
+    event.stopPropagation();
+    setContextMenu({
+      x: event.clientX,
+      y: event.clientY,
+      folderId,
+    });
   };
 
   const handleCreateFolder = () => {
-    if (contextMenu) {
-      const newFolder = {
-        id: `folder-${Date.now()}`,
-        name: "New Folder",
-        position: { x: contextMenu.x, y: contextMenu.y },
-      };
-      dispatch(addFolder(newFolder));
-      setContextMenu(null);
-    }
+    setNewFolderName("");
+    setIsNewFolderModalOpen(true);
+    setContextMenu(null);
+  };
+
+  const handleSubmitNewFolder = () => {
+    const folderName = newFolderName.trim() || `New Folder ${Date.now()}`;
+
+    const position = contextMenu
+      ? { x: contextMenu.x, y: contextMenu.y }
+      : { x: 0, y: 0 };
+
+    const newFolder = {
+      id: `folder-${Date.now()}`,
+      name: folderName,
+      position,
+    };
+
+    dispatch(addFolder(newFolder));
+    setIsNewFolderModalOpen(false);
+    setNewFolderName("");
   };
 
   const handleDeleteFolder = (id: string) => {
     dispatch(deleteFolder(id));
+    setContextMenu(null);
+  };
+
+  const handleDuplicateFolder = (id: string) => {
+    const folder = folders.find((f) => f.id === id);
+    if (folder) {
+      const newFolder = {
+        ...folder,
+        id: `folder-${Date.now()}`,
+        name: `${folder.name} Copy`,
+        position: {
+          x: folder.position.x + 20,
+          y: folder.position.y + 20,
+        },
+      };
+      dispatch(addFolder(newFolder));
+    }
+    setContextMenu(null);
+  };
+
+  const handleRenameClick = (id: string) => {
+    setSelectedFolderId(id);
+    const folder = folders.find((f) => f.id === id);
+    if (folder) {
+      setNewFolderName(folder.name);
+      setIsRenameModalOpen(true);
+    }
+    setContextMenu(null);
+  };
+
+  const handleRenameSubmit = () => {
+    if (!selectedFolderId) return;
+
+    const currentFolder = folders.find(
+      (folder) => folder.id === selectedFolderId
+    );
+    const folderName =
+      newFolderName.trim() || currentFolder?.name || "Untitled Folder";
+
+    dispatch(renameFolder({ id: selectedFolderId, name: folderName }));
+
+    setIsRenameModalOpen(false);
+    setNewFolderName("");
+    setSelectedFolderId(null);
   };
 
   const handleDragStart = (event: React.DragEvent, id: string) => {
@@ -201,7 +321,7 @@ const FileExplorer: React.FC = () => {
       </Sidebar>
       <Canvas
         ref={canvasRef}
-        onContextMenu={handleRightClick}
+        onContextMenu={(e) => handleRightClick(e)}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
@@ -212,11 +332,7 @@ const FileExplorer: React.FC = () => {
             y={folder.position.y}
             draggable
             onDragStart={(e) => handleDragStart(e, folder.id)}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setContextMenu({ x: e.clientX, y: e.clientY });
-            }}
+            onContextMenu={(e) => handleRightClick(e, folder.id)}
           >
             <StyledFolder>
               <FolderIcon />
@@ -226,13 +342,77 @@ const FileExplorer: React.FC = () => {
         ))}
         {contextMenu && (
           <ContextMenu x={contextMenu.x} y={contextMenu.y}>
-            <MenuItem onClick={handleCreateFolder}>New Folder</MenuItem>
-            {draggingId && (
-              <MenuItem onClick={() => handleDeleteFolder(draggingId)}>
-                Delete Folder
-              </MenuItem>
+            {contextMenu.folderId ? (
+              <>
+                <MenuItem
+                  onClick={() => handleRenameClick(contextMenu.folderId)}
+                >
+                  Rename
+                </MenuItem>
+                <MenuItem
+                  onClick={() => handleDuplicateFolder(contextMenu.folderId)}
+                >
+                  Duplicate
+                </MenuItem>
+                <MenuItem
+                  onClick={() => handleDeleteFolder(contextMenu.folderId)}
+                >
+                  Delete
+                </MenuItem>
+              </>
+            ) : (
+              <MenuItem onClick={handleCreateFolder}>New Folder</MenuItem>
             )}
           </ContextMenu>
+        )}
+
+        {isNewFolderModalOpen && (
+          <Modal onClick={(e) => e.stopPropagation()}>
+            <ModalTitle>Create New Folder</ModalTitle>
+            <Input
+              type="text"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              placeholder="Enter folder name"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSubmitNewFolder();
+                if (e.key === "Escape") setIsNewFolderModalOpen(false);
+              }}
+            />
+            <ModalButtons>
+              <Button onClick={() => setIsNewFolderModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button primary onClick={handleSubmitNewFolder}>
+                Create
+              </Button>
+            </ModalButtons>
+          </Modal>
+        )}
+
+        {isRenameModalOpen && (
+          <Modal onClick={(e) => e.stopPropagation()}>
+            <ModalTitle>Rename Folder</ModalTitle>
+            <Input
+              type="text"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleRenameSubmit();
+                if (e.key === "Escape") setIsRenameModalOpen(false);
+              }}
+            />
+            <ModalButtons>
+              <Button onClick={() => setIsRenameModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button primary onClick={handleRenameSubmit}>
+                Rename
+              </Button>
+            </ModalButtons>
+          </Modal>
         )}
       </Canvas>
     </ExplorerContainer>

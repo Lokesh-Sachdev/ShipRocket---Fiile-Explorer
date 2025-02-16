@@ -36,8 +36,18 @@ const foldersSlice = createSlice({
         folder.position = { x: action.payload.x, y: action.payload.y };
       }
     },
+    renameFolder: (
+      state,
+      action: PayloadAction<{ id: string; name: string }>
+    ) => {
+      const folder = state.folders.find((f) => f.id === action.payload.id);
+      if (folder) {
+        folder.name = action.payload.name;
+      }
+    },
   },
 });
 
-export const { addFolder, deleteFolder, moveFolder } = foldersSlice.actions;
+export const { addFolder, deleteFolder, moveFolder, renameFolder } =
+  foldersSlice.actions;
 export default foldersSlice.reducer;
