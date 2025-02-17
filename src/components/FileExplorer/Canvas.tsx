@@ -71,6 +71,21 @@ const Canvas: React.FC<CanvasProps> = ({
   handleDrop,
   canvasRef,
 }) => {
+  const handleDelete = () => {
+    const folderId = contextMenu?.folderId ?? "";
+    handleDeleteFolder(folderId);
+  };
+
+  const handleRename = () => {
+    const folderId = contextMenu?.folderId ?? "";
+    handleRenameClick(folderId);
+  };
+
+  const handleDuplicate = () => {
+    const folderId = contextMenu?.folderId ?? "";
+    handleDuplicateFolder(folderId);
+  };
+
   return (
     <CanvasContainer
       ref={canvasRef}
@@ -97,19 +112,9 @@ const Canvas: React.FC<CanvasProps> = ({
         <ContextMenu x={contextMenu.x} y={contextMenu.y}>
           {contextMenu.folderId ? (
             <>
-              <MenuItem onClick={() => handleRenameClick(contextMenu.folderId)}>
-                Rename
-              </MenuItem>
-              <MenuItem
-                onClick={() => handleDuplicateFolder(contextMenu.folderId)}
-              >
-                Duplicate
-              </MenuItem>
-              <MenuItem
-                onClick={() => handleDeleteFolder(contextMenu.folderId)}
-              >
-                Delete
-              </MenuItem>
+              <MenuItem onClick={handleRename}>Rename</MenuItem>
+              <MenuItem onClick={handleDuplicate}>Duplicate</MenuItem>
+              <MenuItem onClick={handleDelete}>Delete</MenuItem>
             </>
           ) : (
             <MenuItem onClick={handleCreateFolder}>New Folder</MenuItem>

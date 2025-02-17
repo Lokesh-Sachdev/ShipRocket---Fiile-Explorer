@@ -67,34 +67,42 @@ export const useFileExplorer = () => {
   };
 
   const handleDeleteFolder = (id: string) => {
+    if (!id) return;
     dispatch(deleteFolder(id));
     setContextMenu(null);
   };
 
   const handleDuplicateFolder = (id: string) => {
     const folder = folders.find((f) => f.id === id);
-    if (folder) {
-      const newFolder = {
-        ...folder,
-        id: `folder-${Date.now()}`,
-        name: `${folder.name} Copy`,
-        position: {
-          x: folder.position.x + 20,
-          y: folder.position.y + 20,
-        },
-      };
-      dispatch(addFolder(newFolder));
+    if (!folder) {
+      setContextMenu(null);
+      return;
     }
+
+    const newFolder = {
+      ...folder,
+      id: `folder-${Date.now()}`,
+      name: `${folder.name} Copy`,
+      position: {
+        x: folder.position.x + 20,
+        y: folder.position.y + 20,
+      },
+    };
+
+    dispatch(addFolder(newFolder));
     setContextMenu(null);
   };
 
   const handleRenameClick = (id: string) => {
-    setSelectedFolderId(id);
     const folder = folders.find((f) => f.id === id);
-    if (folder) {
-      setNewFolderName(folder.name);
-      setIsRenameModalOpen(true);
+    if (!folder) {
+      setContextMenu(null);
+      return;
     }
+
+    setSelectedFolderId(id);
+    setNewFolderName(folder.name);
+    setIsRenameModalOpen(true);
     setContextMenu(null);
   };
 
