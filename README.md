@@ -1,40 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# [File Explorer Clone](https://pickrr-tech-file-explorer.netlify.app/)
 
-## Getting Started
+![image](https://github.com/user-attachments/assets/9ac117c0-e189-4c4f-8ce3-bbebd995135a)
+![image](https://github.com/user-attachments/assets/9c8df2f0-472f-491f-9757-b79c53866e57)
 
-First, run the development server:
 
+A React-based file explorer interface that mimics the functionality and appearance of a native desktop file system explorer.
+
+## Features
+
+- 🖱️ Context Menu System
+  - Right-click on canvas to create new folders
+  - Right-click on folders for additional options (rename, duplicate, delete)
+- 📁 Folder Management
+  - Create new folders with custom names
+  - Rename existing folders
+  - Duplicate folders
+  - Delete folders
+- 🎯 Drag and Drop
+  - Drag folders to reposition them on the canvas
+  - Smooth positioning with cursor feedback
+- 🎨 Modern UI
+  - macOS-inspired dark theme
+  - Responsive layout with sidebar
+  - Icon-based folder representation
+
+## Tech Stack
+
+- React
+- TypeScript
+- Redux (with Redux Toolkit)
+- Styled Components
+- Lucide React (for icons)
+
+## Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd file-explorer-clone
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+3. Start the development server:
+```bash
+npm start
+# or
+yarn start
+```
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+## Project Structure
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+```
+src/
+├── lib/
+│   └── store.ts           # Redux store configuration
+|   └──features/
+│      └── folders/
+│          └── foldersSlice.ts # Folder management redux slice
+├── components/
+│   └── FileExplorer/
+│       └── FileExplorer.tsx   # Main file explorer component
+└── styles/
+    └── styled.ts          # Styled components
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Component Architecture
 
-## Learn More
+### FileExplorer Component
 
-To learn more about Next.js, take a look at the following resources:
+The main component that handles:
+- Folder rendering and positioning
+- Context menu management
+- Drag and drop functionality
+- Modal dialogs for folder operations
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+### Redux State Management
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```typescript
+interface Folder {
+  id: string;
+  name: string;
+  position: {
+    x: number;
+    y: number;
+  };
+}
 
-## Deploy on Vercel
+interface FoldersState {
+  folders: Folder[];
+}
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Available Actions
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+- `addFolder`: Creates a new folder
+- `deleteFolder`: Removes an existing folder
+- `moveFolder`: Updates folder position
+- `renameFolder`: Updates folder name
+- `duplicateFolder`: Creates a copy of an existing folder
+
+## Usage
+
+### Creating a New Folder
+
+1. Right-click on the canvas
+2. Select "New Folder" from the context menu
+3. Enter the folder name in the modal
+4. Click "Create" or press Enter
+
+### Managing Folders
+
+Right-click on any folder to:
+- Rename: Change the folder's name
+- Duplicate: Create a copy of the folder
+- Delete: Remove the folder
+
+### Moving Folders
+
+- Click and drag any folder to reposition it
+- Release to drop the folder at the new position
+
+## Styling
+
+The project uses Styled Components for styling with a dark theme inspired by macOS. Key style features include:
+
+- Dark theme with appropriate contrast
+- Consistent spacing and typography
+- Smooth animations and transitions
+- Responsive layout
+- Icon-based interface
+
+## Contact
+
+Please feel free to reach out to Sachdev927@gmail.com
